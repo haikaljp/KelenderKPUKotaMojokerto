@@ -3,7 +3,7 @@
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Kalender Di KPU</title>
+        <title>Kalender Interaktif (Tanpa Tahun)</title>
         <style>
             * {
                 box-sizing: border-box;
@@ -289,11 +289,6 @@
                 position: relative;
                 scrollbar-width: none; /* Sembunyikan scrollbar di Firefox */
             }
-
-            .monthly-schedule-container::-webkit-scrollbar {
-                display: none; /* Sembunyikan scrollbar di Chrome/Safari */
-            }
-
             #sidebar-header {
                 position: sticky;
                 top: 0;
@@ -322,6 +317,16 @@
                     transparent 100%);
             }
 
+            /* Sembunyikan scrollbar di Mobile */
+            @media (max-width: 1023px) {
+                .monthly-schedule-container {
+                    scrollbar-width: none; /* Untuk Firefox */
+                }
+                .monthly-schedule-container::-webkit-scrollbar {
+                    display: none; /* Untuk Chrome, Safari, Edge */
+                }
+            }
+
             /* Pengaturan Desktop (Layar Lebar) */
             @media (min-width: 1024px) {
                 .main-wrapper {
@@ -337,8 +342,10 @@
                     min-width: 350px; /* Hanya gunakan min-width di Desktop */
                 }
                 .monthly-schedule-container {
-                    width: 350px;
+                    width: 320px; /* Sedikit lebih ramping di desktop */
+                    max-height: calc(100vh - 40px); /* Memanfaatkan tinggi layar vertikal */
                     max-width: none;
+                    scrollbar-width: thin; /* Tampilkan scrollbar tipis di Firefox */
                 }
                 .day {
                     padding: 20px 0; /* Sel lebih besar di desktop */
