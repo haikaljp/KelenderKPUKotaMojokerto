@@ -3,7 +3,7 @@
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Kalender Interaktif (Tanpa Tahun)</title>
+        <title>Kalender Penting KPU</title>
         <style>
             * {
                 box-sizing: border-box;
@@ -342,16 +342,14 @@
                 }
                 .monthly-schedule-container {
                     width: 320px; /* Sedikit lebih ramping di desktop */
-                    max-height: 500px; /* Tinggi tetap agar scrollbar lebih mudah terpicu */
+                    max-height: calc(100vh - 250px); /* Disesuaikan agar scrollbar muncul lebih awal */
                     max-width: none;
-                    overflow-y: scroll; /* Paksa munculkan track scrollbar */
-                    scrollbar-width: thin; 
-                    scrollbar-color: var(--maroon-dark) #f1f1f1;
+                    scrollbar-width: thin; /* Tampilkan scrollbar tipis di Firefox */
                 }
 
                 /* Desain Scrollbar khusus Desktop (Chrome, Edge, Safari) */
                 .monthly-schedule-container::-webkit-scrollbar {
-                    width: 8px; /* Sedikit lebih tebal agar mudah diklik */
+                    width: 6px;
                     display: block; /* Pastikan tampil di desktop */
                 }
                 .monthly-schedule-container::-webkit-scrollbar-track {
@@ -572,7 +570,7 @@
 
         <!-- Header KPU -->
         <div class="kpu-brand-header">
-            <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/4/46/KPU_Logo.svg/1280px-KPU_Logo.svg.png" alt="Logo KPU">
+            <img src="https://www.kpu.go.id/images/1627539868logo-kpu.png" alt="Logo KPU">
             <h1>KOMISI PEMILIHAN UMUM</h1>
             <h2>KOTA MOJOKERTO</h2>
             <span class="important-label">KALENDER PENTING DI KPU</span>
@@ -740,7 +738,7 @@
                 "05-26": ["Hari Raya Idul Adha 1447 H"],
                 "05-28": ["Hari Amnesty Internasional"],
                 "05-29": ["Hari Lanjut Usia Nasional"],
-                "05-31": ["Hari Raya Waisak 2570 BE (Libur Nasional)"],
+                "05-31": ["Hari Raya Waisak 2570 BE"],
 
                 "06-01": ["Hari Lahir Pancasila"],
                 "06-12": ["Harlah DKPP"],
@@ -770,20 +768,20 @@
                 ],
                 "08-17": ["Hari Kemerdekaan RI"],
                 "08-25": [
-                    "Ulang Tahun August Mellaz",
+                    "Ulang Tahun August Mellaz (Anggota KPU RI)",
                     "Maulid Nabi Muhammad SAW"
                 ],
 
                 "09-02": ["Hari Kejaksaan RI"],
-                "09-04": ["Ulang Tahun Insan Qoriawan"],
+                "09-04": ["Ulang Tahun Insan Qoriawan (Anggota KPU Jatim)"],
                 "09-09": ["Hari Olahraga Nasional"],
                 "09-11": ["Hari Radio RI"],
                 "09-17": ["Harlah Korps HMI", "Harlah Palang Merah Indonesia"],
                 "09-30": ["Hari G30S/PKI"],
 
-                "10-01": ["Hari Kesaktian Pancasila"],
-                "10-02": ["Hari Batik Nasional", "Ulang Tahun Miftahur Rozaq"],
-                "10-05": ["Hari TNI", "Ulang Tahun Bernad Dermawan Sutrisno"],
+                "10-01": ["Hari Kesaktian Pancasila","Ulang Tahun Wakil Presiden Indonesia"],
+                "10-02": ["Hari Batik Nasional", "Ulang Tahun Miftahur Rozaq (Anggota KPU Jatim)"],
+                "10-05": ["Hari TNI", "Ulang Tahun Bernad Dermawan Sutrisno (Sekjen KPU RI)"],
                 "10-12": ["Hari Jadi Provinsi Jawa Timur"],
                 "10-17": ["Hari Ultah Presiden RI"],
                 "10-22": ["Hari Santri Nasional"],
@@ -815,7 +813,7 @@
                 "06-01": { src: "https://upload.wikimedia.org/wikipedia/commons/thumb/9/90/National_emblem_of_Indonesia_Garuda_Pancasila.svg/960px-National_emblem_of_Indonesia_Garuda_Pancasila.svg.png", alt: "Pancasila", size: "24px" },
                 "07-01": { src: "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b3/Logo_Polri.png/438px-Logo_Polri.png", alt: "Polri", size: "24px" },
                 "08-14": { src: "https://upload.wikimedia.org/wikipedia/commons/thumb/7/7b/Logo_Pramuka.svg/512px-Logo_Pramuka.svg.png", alt: "Pramuka", size: "24px" },
-                "11-07": { src: "https://upload.wikimedia.org/wikipedia/commons/thumb/4/46/KPU_Logo.svg/1280px-KPU_Logo.svg.png", alt: "KPU", size: "24px" }
+                "11-07": { src: "https://www.kpu.go.id/images/1627539868logo-kpu.png", alt: "KPU", size: "24px" }
             };
 
             function initCalendar() {
