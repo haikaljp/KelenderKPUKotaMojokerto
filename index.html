@@ -3,8 +3,12 @@
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Kalender Interaktif (Tanpa Tahun)</title>
+        <title>Kalender Di KPU</title>
         <style>
+            * {
+                box-sizing: border-box;
+            }
+
             :root {
                 --primary-color: #BF0000;
                 --primary-dark: #4D0000;
@@ -78,7 +82,8 @@
                 flex-wrap: wrap; /* Untuk mobile/tablet tetap membungkus */
                 justify-content: center;
                 align-items: flex-start;
-                max-width: 1400px;
+                width: 100%;
+                max-width: 1200px;
                 margin: 0 auto;
             }
 
@@ -115,9 +120,8 @@
                 padding: 0; /* Ubah padding agar header bisa full width */
                 border-radius: 12px;
                 box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-                flex: 1; /* Mengambil sisa ruang tengah */
-                min-width: 350px;
-                max-width: 750px; /* Ditambah agar lebih lebar di PC */
+                width: 100%;
+                max-width: 500px; /* Default untuk mobile/tablet agar tidak terlalu lebar */
                 overflow: hidden;
                 border: 1px solid var(--maroon-dark);
             }
@@ -328,7 +332,9 @@
                     display: block;
                 }
                 .calendar-container {
-                    max-width: none;
+                    flex: 1;
+                    max-width: 750px; /* Batas lebar kalender di Desktop */
+                    min-width: 350px; /* Hanya gunakan min-width di Desktop */
                 }
                 .monthly-schedule-container {
                     width: 350px;
