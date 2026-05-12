@@ -32,18 +32,50 @@
             .main-wrapper {
                 display: flex;
                 gap: 25px;
-                flex-wrap: wrap;
+                flex-direction: row;
+                flex-wrap: wrap; /* Untuk mobile/tablet tetap membungkus */
                 justify-content: center;
                 align-items: flex-start;
+                max-width: 1400px;
+                margin: 0 auto;
             }
 
+            /* Panel Kiri khusus Desktop */
+            .left-panel {
+                display: none; /* Sembunyi di mobile */
+                background: white;
+                padding: 20px;
+                border-radius: 12px;
+                box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+                width: 200px;
+                border: 1px solid var(--maroon-dark);
+                position: sticky;
+                top: 20px;
+            }
+
+            .stat-box {
+                text-align: center;
+                margin-bottom: 20px;
+                padding-bottom: 15px;
+                border-bottom: 1px solid #eee;
+            }
+
+            .stat-number {
+                font-size: 2rem;
+                font-weight: bold;
+                color: var(--primary-color);
+                display: block;
+            }
+
+            /* Ukuran Kontainer Kalender di Desktop */
             .calendar-container {
                 background: #ffffff;
                 padding: 0; /* Ubah padding agar header bisa full width */
                 border-radius: 12px;
                 box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-                width: 100%;
-                max-width: 350px;
+                flex: 1; /* Mengambil sisa ruang tengah */
+                min-width: 350px;
+                max-width: 750px; /* Ditambah agar lebih lebar di PC */
                 overflow: hidden;
                 border: 1px solid var(--maroon-dark);
             }
@@ -110,8 +142,9 @@
             .calendar-grid {
                 display: grid;
                 grid-template-columns: repeat(7, 1fr);
-                gap: 5px;
+                gap: 8px; /* Jarak antar kotak tanggal diperlebar sedikit */
                 text-align: center;
+                padding: 15px 20px 20px 20px; /* Memberikan ruang dari border luar */
             }
 
             /* Animasi Transisi */
@@ -243,13 +276,25 @@
                     transparent 100%);
             }
 
-            @media (max-width: 400px) {
-                body {
-                    padding: 10px;
+            /* Pengaturan Desktop (Layar Lebar) */
+            @media (min-width: 1024px) {
+                .main-wrapper {
+                    flex-wrap: nowrap; /* Paksa 3 kolom bersampingan */
+                    align-items: stretch;
                 }
-                .calendar-container,
+                .left-panel {
+                    display: block;
+                }
+                .calendar-container {
+                    max-width: none;
+                }
                 .monthly-schedule-container {
-                    padding: 15px;
+                    width: 350px;
+                    max-width: none;
+                }
+                .day {
+                    padding: 20px 0; /* Sel lebih besar di desktop */
+                    font-size: 1.1rem;
                 }
             }
 
@@ -456,6 +501,20 @@
     <body>
 
         <div class="main-wrapper">
+            <!-- Panel Kiri Tambahan untuk PC -->
+            <div class="left-panel">
+                <div class="stat-box">
+                    <span class="stat-number" id="count-total">0</span>
+                    <small>Total Agenda</small>
+                </div>
+                <div style="font-size: 0.85rem; color: #666;">
+                    <p><strong>Shortcut:</strong></p>
+                    <p>← : Bulan Lalu</p>
+                    <p>→ : Bulan Depan</p>
+                    <p>T : Hari Ini</p>
+                </div>
+            </div>
+
             <div class="calendar-container">
                 <div class="calendar-header">
                     <button class="nav-btn" onclick="changeMonth(-1)" aria-label="Bulan sebelumnya">❮</button>
@@ -678,7 +737,7 @@
                 "06-01": { src: "https://upload.wikimedia.org/wikipedia/commons/thumb/9/90/National_emblem_of_Indonesia_Garuda_Pancasila.svg/960px-National_emblem_of_Indonesia_Garuda_Pancasila.svg.png", alt: "Pancasila", size: "24px" },
                 "07-01": { src: "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b3/Logo_Polri.png/438px-Logo_Polri.png", alt: "Polri", size: "24px" },
                 "08-14": { src: "https://upload.wikimedia.org/wikipedia/commons/thumb/7/7b/Logo_Pramuka.svg/512px-Logo_Pramuka.svg.png", alt: "Pramuka", size: "24px" },
-                "11-07": { src: "https://upload.wikimedia.org/wikipedia/commons/4/46/KPU_Logo.svg", alt: "KPU", size: "24px" }
+                "11-07": { src: "https://upload.wikimedia.org/wikipedia/commons/thumb/4/46/KPU_Logo.svg/1280px-KPU_Logo.svg.png", alt: "KPU", size: "24px" }
             };
 
             function initCalendar() {
@@ -736,6 +795,13 @@
                     // Pantau jika ukuran header berubah (misal teks membungkus/wrap)
                     new ResizeObserver(updateHeight).observe(sidebarHeader);
                 }
+
+                // Keyboard Shortcuts untuk Desktop
+                window.addEventListener('keydown', (e) => {
+                    if (e.key === 'ArrowLeft') changeMonth(-1);
+                    if (e.key === 'ArrowRight') changeMonth(1);
+                    if (e.key.toLowerCase() === 't') goToToday();
+                });
 
                 renderCalendar(displayedMonth, displayedYear);
                 renderPopup(realToday, realMonth, realYear);
@@ -817,6 +883,11 @@
 
                 const sidebarDay = (month === realMonth && year === realYear) ? realToday : '';
                 renderMonthlyList(month, sidebarDay);
+                
+                // Update Stats di Panel Kiri
+                const totalThisMonth = Object.keys(schedules).filter(k => k.startsWith(String(month + 1).padStart(2, '0'))).length;
+                const countElem = document.getElementById('count-total');
+                if(countElem) countElem.innerText = totalThisMonth;
             }
 
             // Fungsi untuk menentukan warna kategori
