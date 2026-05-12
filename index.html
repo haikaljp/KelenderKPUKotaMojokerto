@@ -1,0 +1,1064 @@
+<!DOCTYPE html>
+<html lang="id">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Kalender Interaktif (Tanpa Tahun)</title>
+        <style>
+            :root {
+                --primary-color: #BF0000;
+                --primary-dark: #4D0000;
+                --secondary-color: #e95007;
+                --accent-color: #ffbf00;
+                --bg-light: #ffdc73;
+                --deep-dark: #340705;
+                --maroon-dark: #660300;
+                --text-color: #222;
+                --gradient-main: linear-gradient(135deg, #660300, #BF0000);
+                --gradient-orange: linear-gradient(to right, #e95007, #e8300e);
+            }
+
+            body {
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                background: radial-gradient(circle at center, #ffffff, var(--bg-light));
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                min-height: 95vh;
+                margin: 0;
+                padding: 20px;
+            }
+
+            .main-wrapper {
+                display: flex;
+                gap: 25px;
+                flex-wrap: wrap;
+                justify-content: center;
+                align-items: flex-start;
+            }
+
+            .calendar-container {
+                background: #ffffff;
+                padding: 0; /* Ubah padding agar header bisa full width */
+                border-radius: 12px;
+                box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+                width: 100%;
+                max-width: 350px;
+                overflow: hidden;
+                border: 1px solid var(--maroon-dark);
+            }
+
+            .calendar-header {
+                background: var(--gradient-main);
+                color: white;
+                padding: 20px;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+            }
+
+            #month-year-display {
+                cursor: pointer;
+                flex-grow: 1;
+                text-align: center;
+            }
+
+            .header-content {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                flex-grow: 1;
+            }
+
+            .today-btn {
+                background: var(--accent-color);
+                color: var(--maroon-dark);
+                border: none;
+                padding: 5px 15px;
+                border-radius: 20px;
+                font-size: 0.7rem;
+                cursor: pointer;
+                margin-top: 5px;
+                transition: all 0.3s ease;
+                text-transform: uppercase;
+                font-weight: bold;
+                box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+            }
+
+            .today-btn:hover {
+                background: white;
+                color: var(--primary-color);
+                transform: translateY(-2px);
+                box-shadow: 0 6px 12px rgba(0,0,0,0.3);
+            }
+
+            .today-btn.is-today {
+                background: white;
+                color: var(--maroon-dark);
+                border: 1px solid var(--maroon-dark);
+                cursor: default;
+            }
+
+            .nav-btn {
+                background: #eee;
+                border: none;
+                padding: 5px 12px;
+                border-radius: 5px;
+                transition: transform 0.2s;
+            }
+
+            .calendar-grid {
+                display: grid;
+                grid-template-columns: repeat(7, 1fr);
+                gap: 5px;
+                text-align: center;
+            }
+
+            /* Animasi Transisi */
+            @keyframes slideInRight {
+                from {
+                    transform: translateX(30px);
+                    opacity: 0;
+                }
+                to {
+                    transform: translateX(0);
+                    opacity: 1;
+                }
+            }
+
+            @keyframes slideInLeft {
+                from {
+                    transform: translateX(-30px);
+                    opacity: 0;
+                }
+                to {
+                    transform: translateX(0);
+                    opacity: 1;
+                }
+            }
+
+            .slide-in-right {
+                animation: slideInRight 0.3s ease-out;
+            }
+
+            .slide-in-left {
+                animation: slideInLeft 0.3s ease-out;
+            }
+
+            .day-name {
+                font-weight: bold;
+                color: #888;
+                font-size: 0.8rem;
+                padding-bottom: 10px;
+            }
+
+            .day {
+                padding: 10px 0;
+                border-radius: 5px;
+                cursor: pointer;
+                border: 2px solid transparent;
+                box-sizing: border-box;
+                transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+                position: relative;
+            }
+
+            .day:hover:not(.day-name) {
+                background-color: var(--bg-light);
+                color: var(--maroon-dark);
+                border-color: var(--secondary-color);
+                transform: scale(1.2);
+                z-index: 10;
+                box-shadow: 0 8px 15px rgba(102, 3, 0, 0.2);
+            }
+
+            .today {
+                background-color: var(--accent-color);
+                color: var(--maroon-dark);
+                font-weight: bold;
+                border-color: var(--primary-color);
+                box-shadow: 0 0 10px rgba(233, 80, 7, 0.3);
+            }
+
+            .has-schedule {
+                position: relative;
+                cursor: pointer !important;
+                border: 1px solid var(--secondary-color);
+            }
+
+            .has-schedule::after {
+                content: '';
+                position: absolute;
+                bottom: 3px;
+                left: 50%;
+                transform: translateX(-50%);
+                width: 4px;
+                height: 4px;
+                background-color: var(--secondary-color);
+                border-radius: 50%;
+            }
+
+            .monthly-schedule-container {
+                background: white;
+                padding: 0; /* Padding dipindah ke elemen internal agar sticky bekerja sempurna */
+                border-radius: 12px;
+                box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+                width: 100%;
+                max-width: 300px;
+                max-height: 550px;
+                overflow-y: auto;
+                overflow-x: hidden; /* Tambahan */
+                position: relative;
+                scrollbar-width: none; /* Sembunyikan scrollbar di Firefox */
+            }
+
+            .monthly-schedule-container::-webkit-scrollbar {
+                display: none; /* Sembunyikan scrollbar di Chrome/Safari */
+            }
+
+            #sidebar-header {
+                position: sticky;
+                top: 0;
+                background: rgb(255, 255, 255); /* Putih solid agar konten di bawahnya menghilang total */
+                z-index: 10; 
+                padding: 10px 20px 10px 20px; /* Perkecil padding atas (10px) agar konten mepet ke atas */
+                margin: 0 !important;
+                color: var(--maroon-dark);
+                border-bottom: 2px solid var(--bg-light);
+                display: flex;
+                align-items: center;
+                min-height: 40px; /* Kurangi min-height agar lebih ramping */
+                border-radius: 12px 12px 0 0; /* Tambahkan ini agar mengikuti lengkungan container induk */
+            }
+
+            #monthly-list-all {
+                padding: 5px 20px 20px 20px; /* Padding atas minimal untuk estetika */
+                /* Efek Masking hanya di bagian bawah saja agar bagian atas terpotong bersih oleh header */
+                -webkit-mask-image: linear-gradient(to bottom, 
+                    black 0%, 
+                    black calc(100% - 40px), 
+                    transparent 100%);
+                mask-image: linear-gradient(to bottom, 
+                    black 0%, 
+                    black calc(100% - 40px), 
+                    transparent 100%);
+            }
+
+            @media (max-width: 400px) {
+                body {
+                    padding: 10px;
+                }
+                .calendar-container,
+                .monthly-schedule-container {
+                    padding: 15px;
+                }
+            }
+
+            .overlay {
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0,0,0,0.6);
+                display: none;
+                justify-content: center;
+                align-items: center;
+                z-index: 1000;
+            }
+
+            .popup {
+                background: white;
+                padding: 30px;
+                border-radius: 15px;
+                text-align: center;
+                max-width: 400px;
+                width: 90%;
+                animation: slideDown 0.4s ease-out;
+            }
+
+            @keyframes slideDown {
+                from {
+                    transform: translateY(-50px);
+                    opacity: 0;
+                }
+                to {
+                    transform: translateY(0);
+                    opacity: 1;
+                }
+            }
+
+            .popup-date-big {
+                font-size: 5rem;
+                font-weight: bold;
+                margin: 0;
+                background: var(--gradient-orange);
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+            }
+
+            .popup-date-sup {
+                font-size: 1.5rem;
+                vertical-align: super;
+                color: #555;
+            }
+
+            /* Jarak aman dinamis berdasarkan tinggi header */
+            .reminder-list li {
+                scroll-margin-top: var(--header-height, 0px);
+                transition: scroll-margin-top 0.3s ease;
+            }
+
+            @keyframes fadeInItem {
+                from { 
+                    opacity: 0; 
+                    transform: translateY(10px); 
+                }
+                to { 
+                    opacity: 1; 
+                    transform: translateY(0); 
+                }
+            }
+
+            .reminder-list {
+                list-style: none;
+                padding: 0;
+                margin: 0;
+                text-align: left;
+            }
+
+            .reminder-list li {
+                padding: 8px 0;
+                border-bottom: 1px dashed #eee;
+                animation: fadeInItem 0.4s ease forwards;
+                opacity: 0; /* Mulai dari transparan sebelum animasi jalan */
+            }
+            
+            /* Highlight untuk agenda yang dipilih */
+            .active-agenda {
+                background: linear-gradient(to right, var(--bg-light), rgba(255, 255, 255, 0.1));
+                border-left: 5px solid var(--primary-color);
+                padding-left: 10px !important;
+                border-radius: 4px;
+            }
+
+            .close-btn {
+                margin-top: 20px;
+                padding: 10px 20px;
+                background: var(--gradient-main);
+                color: white;
+                border: none;
+                border-radius: 5px;
+                cursor: pointer;
+                font-weight: bold;
+            }
+
+            /* Ikon Kalender Dinamis dengan Efek Kertas Sobek */
+            .dynamic-icon {
+                display: inline-flex;
+                flex-direction: column;
+                width: 36px;
+                height: 40px;
+                background: white;
+                border: 1.5px solid var(--maroon-dark);
+                border-radius: 4px;
+                vertical-align: middle;
+                margin-right: 8px;
+                box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+                line-height: 1.2;
+                position: relative;
+                animation: paperPop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            }
+
+            /* Efek Lubang Spiral di Atas */
+            .dynamic-icon::before {
+                content: '';
+                position: absolute;
+                top: -4px;
+                left: 0;
+                width: 100%;
+                height: 8px;
+                background-image: radial-gradient(circle, #fff 2px, transparent 2.5px);
+                background-size: 8px 8px;
+                z-index: 2;
+            }
+
+            @keyframes paperPop {
+                0% { transform: scale(0.8) rotate(-5deg); opacity: 0; }
+                100% { transform: scale(1) rotate(0deg); opacity: 1; }
+            }
+
+            .icon-m {
+                background: var(--header-color, var(--maroon-dark));
+                color: white;
+                font-size: 10px;
+                padding: 2px 0;
+                text-align: center;
+                font-weight: bold;
+                border-bottom: 1px solid rgba(0,0,0,0.1);
+                transition: background 0.3s ease;
+            }
+
+            .icon-d {
+                flex-grow: 1;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 15px;
+                font-weight: bold;
+                color: var(--maroon-dark);
+                /* Efek Sobek di Bawah */
+                clip-path: polygon(
+                    0% 0%, 100% 0%, 100% 92%, 
+                    90% 100%, 80% 92%, 70% 100%, 
+                    60% 92%, 50% 100%, 40% 92%, 
+                    30% 100%, 20% 92%, 10% 100%, 0% 92%
+                );
+            }
+
+            /* Styles untuk Kalender 12 Bulan */
+            .year-grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+                gap: 15px;
+                margin-top: 20px;
+            }
+
+            .mini-month {
+                background: #f9f9f9;
+                padding: 10px;
+                border-radius: 8px;
+                border: 1px solid #eee;
+                cursor: pointer;
+                transition: background 0.2s;
+                box-sizing: border-box;
+            }
+
+            .mini-month:hover {
+                background: #f0f0f0;
+                border-color: var(--primary-color);
+            }
+
+            .mini-month-name {
+                font-size: 0.8rem;
+                font-weight: bold;
+                color: var(--maroon-dark);
+                margin-bottom: 5px;
+            }
+
+            .mini-days {
+                display: grid;
+                grid-template-columns: repeat(7, 1fr);
+                font-size: 0.6rem;
+                gap: 2px;
+            }
+        </style>
+    </head>
+    <body>
+
+        <div class="main-wrapper">
+            <div class="calendar-container">
+                <div class="calendar-header">
+                    <button class="nav-btn" onclick="changeMonth(-1)" aria-label="Bulan sebelumnya">❮</button>
+                    <div class="header-content">
+                        <h2
+                            id="month-year-display"
+                            onclick="showYearView()"
+                            title="Klik untuk lihat 12 bulan"
+                            style="margin:0"></h2>
+                        <button class="today-btn" onclick="goToToday()">Hari Ini</button>
+                    </div>
+                    <button class="nav-btn" onclick="changeMonth(1)" aria-label="Bulan berikutnya">❯</button>
+                </div>
+                <div class="calendar-grid" id="calendar-grid"></div>
+            </div>
+
+            <div class="monthly-schedule-container">
+                <h3 id="sidebar-header">Agenda Bulan Ini</h3>
+                <ul class="reminder-list" id="monthly-list-all"></ul>
+            </div>
+        </div>
+
+        <div class="overlay" id="popup-overlay">
+            <div class="popup">
+                <div id="popup-date-content"></div>
+                <div
+                    style="margin-top: 25px; text-align: left; border-top: 1px solid #eee; padding-top: 15px;">
+                    <span id="popup-reminder-title"
+                        style="font-weight: bold; color: var(--secondary-color); display: flex; align-items: center; margin-bottom: 10px;">
+                        Jadwal Ucapan Hari Ini:
+                    </span>
+                    <ul class="reminder-list" id="reminder-list"></ul>
+                </div>
+                <button class="close-btn" onclick="closePopup()">Tutup</button>
+            </div>
+        </div>
+
+        <!-- Popup Kalender 12 Bulan -->
+        <div class="overlay" id="year-overlay">
+            <div
+                class="popup"
+                style="max-width: 900px; width: 95%; max-height: 90vh; overflow-y: auto;">
+                <h2 style="color: var(--maroon-dark); margin-top: 0;">KALENDER TAHUNAN</h2>
+                <div class="year-grid" id="year-grid-content"></div>
+                <button class="close-btn" onclick="closeYearPopup()">Tutup</button>
+            </div>
+        </div>
+
+        <script>
+            // Point 1: Nama bulan kapital saja
+            const monthNames = [
+                "JANUARI",
+                "FEBRUARI",
+                "MARET",
+                "APRIL",
+                "MEI",
+                "JUNI",
+                "JULI",
+                "AGUSTUS",
+                "SEPTEMBER",
+                "OKTOBER",
+                "NOVEMBER",
+                "DESEMBER"
+            ];
+            const dayNames = [
+                "Min",
+                "Sen",
+                "Sel",
+                "Rab",
+                "Kam",
+                "Jum",
+                "Sab"
+            ];
+
+            // State untuk melacak bulan yang sedang ditampilkan
+            let displayedMonth;
+            let displayedYear;
+
+            const realNow = new Date();
+            const realToday = realNow.getDate();
+            const realMonth = realNow.getMonth();
+            const realYear = realNow.getFullYear();
+
+            // DATA TANPA TAHUN (MM-DD)
+            const schedules = {
+                "01-01": ["Tahun Baru Masehi (Libur Nasional)"],
+                "01-25": ["Hari Gizi dan Makanan"],
+                "01-31": ["Harlah NU"],
+
+                "02-01": ["Ulang Tahun Mochammad Afifuddin (Ketua KPU RI)"],
+                "02-05": ["Harlah HMI"],
+                "02-09": ["Hari Pers Nasional"],
+                "02-23": ["Ulang Tahun Aang Kunaifi (Ketua KPU Jatim)"],
+                "02-24": [
+                    "Ulang Tahun Eka Wisnu Wardhana (Anggota KPU Jatim)",
+                    "Ulang Tahun Wiratmoko Iman Santoso (Sekretaris KPU Kota Mojokerto)"
+                ],
+
+                "03-02": [
+                    "Ulang Tahun Idham Holik Persada (Anggota KPU RI)",
+                    "Ulang Tahun Habib M. Rohan (Anggota KPU Jatim)"
+                ],
+                "03-08": [
+                    "Hari Perempuan Internasional",
+                    "Ulang Tahun Choirul Umam (Anggota KPU Jatim)"
+                ],
+                "03-09": ["Hari Musik Nasional"],
+                "03-14": ["Harlah Ikatan Mahasiswa Muhammadiyah"],
+                "03-22": ["Ulang Tahun Betty Epsilon Idroos (Anggota KPU RI)"],
+                "03-23": [
+                    "Ulang Tahun Nur Salam (Anggota KPU Jatim)",
+                    "Harlah Gerakan Mahasiswa Nasional Indonesia"
+                ],
+                "03-29": ["Harlah Muslimat NU"],
+                "03-30": [
+                    "Hari Film Nasional / Hari Seni Nasional",
+                    "Ulang Tahun Dr. Rachman Sidharta Arisandi, S.IP., M.Si. (Wakil Walikota Mojokerto)"
+                ],
+
+                "04-05": ["Hari Raya Paskah"],
+                "04-07": ["Hari Kesehatan Internasional"],
+                "04-09": ["Harlah Bawaslu"],
+                "04-10": ["Ulang Tahun Ery Purwanti (Ketua DPRD Kota Mojokerto)"],
+                "04-12": ["Ulang Tahun Ika Puspitasari (Walikota Mojokerto)"],
+                "04-16": ["Hari Kopassus"],
+                "04-17": ["Harlah PMII"],
+                "04-21": ["Hari Kartini"],
+                "04-22": ["Hari Bumi"],
+                "04-24": ["Harlah Fatayat NU", "Harlah Ansor"],
+                "04-28": ["Hari Buku Sedunia"],
+                "04-30": ["Ulang Tahun Iffa Rosita (Anggota KPU RI)"],
+
+                "05-01": ["Hari Buruh Internasional (Libur Nasional)"],
+                "05-02": ["Hari Pendidikan Nasional"],
+                "05-03": ["Hari Kebebasan Pers Sedunia"],
+                "05-08": ["Hari Palang Merah Sedunia"],
+                "05-14": [
+                    "Kenaikan Yesus Kristus",
+                    "Harlah Komisi Informasi Provinsi Jawa Timur"
+                ],
+                "05-15": ["Hari Keluarga Internasional"],
+                "05-20": ["Hari Kebangkitan Nasional"],
+                "05-21": ["Hari Reformasi"],
+                "05-24": ["Hari Perempuan Internasional untuk Perdamaian"],
+                "05-26": ["Hari Raya Idul Adha 1447 H"],
+                "05-28": ["Hari Amnesty Internasional"],
+                "05-29": ["Hari Lanjut Usia Nasional"],
+                "05-31": ["Hari Raya Waisak 2570 BE (Libur Nasional)"],
+
+                "06-01": ["Hari Lahir Pancasila"],
+                "06-12": ["Harlah DKPP"],
+                "06-16": ["Tahun Baru Islam 1448 H"],
+                "06-20": ["HUT Kota Mojokerto"],
+                "06-21": ["Hari Krida Pertanian"],
+                "06-29": ["Hari Keluarga Nasional"],
+
+                "07-01": [
+                    "Hari Bhayangkara",
+                    "Ulang Tahun Nanik Karsini (Sekretaris KPU Jatim)"
+                ],
+                "07-02": ["Ulang Tahun Yahya Sachrul Wahyu Iman Asyidiq (Anggota KPU Kota Mojokerto)"],
+                "07-07": ["Ulang Tahun Usmuni (Ketua KPU Kota Mojokerto)"],
+                "07-09": ["Ulang Tahun Yulianto Sudrajat (Anggota KPU RI)"],
+                "07-17": ["Ulang Tahun Parsadaan Harahap (Anggota KPU RI)"],
+                "07-18": ["Muhammad Oggy Yulian Pratama  (Anggota KPU Kota Mojokerto)"],
+                "07-22": ["Hari Bhakti Adhyaksa"],
+                "07-23": ["Hari Anak Nasional"],
+                "07-29": ["Hari TNI AU"],
+
+                "08-10": ["Hari Veteran Nasional"],
+                "08-14": ["Hari Pramuka"],
+                "08-15": [
+                    "Ulang Tahun Ulil Abshor (Anggota KPU Kota Mojokerto)",
+                    "Hari Bawaslu Kabupaten/Kota Se-Indonesia"
+                ],
+                "08-17": ["Hari Kemerdekaan RI"],
+                "08-25": [
+                    "Ulang Tahun August Mellaz",
+                    "Maulid Nabi Muhammad SAW"
+                ],
+
+                "09-02": ["Hari Kejaksaan RI"],
+                "09-04": ["Ulang Tahun Insan Qoriawan"],
+                "09-09": ["Hari Olahraga Nasional"],
+                "09-11": ["Hari Radio RI"],
+                "09-17": ["Harlah Korps HMI", "Harlah Palang Merah Indonesia"],
+                "09-30": ["Hari G30S/PKI"],
+
+                "10-01": ["Hari Kesaktian Pancasila"],
+                "10-02": ["Hari Batik Nasional", "Ulang Tahun Miftahur Rozaq"],
+                "10-05": ["Hari TNI", "Ulang Tahun Bernad Dermawan Sutrisno"],
+                "10-12": ["Hari Jadi Provinsi Jawa Timur"],
+                "10-17": ["Hari Ultah Presiden RI"],
+                "10-22": ["Hari Santri Nasional"],
+                "10-28": ["Hari Sumpah Pemuda"],
+
+                "11-03": ["Ulang Tahun Suwaji (Anggota KPU Kota Mojokerto)"],
+                "11-07": ["Hari Lahir KPU"],
+                "11-10": ["Hari Pahlawan"],
+                "11-12": ["Hari Kesehatan Nasional", "Hari Bapak Nasional"],
+                "11-18": ["Harlah Muhammadiyah"],
+                "11-21": ["Ulang Tahun I Dewa Wiarsa Raka Sandi"],
+                "11-25": ["Hari Guru Nasional"],
+                "11-28": ["Hari Menanam Pohon Nasional"],
+                "11-29": ["HUT KORPRI"],
+
+                "12-01": ["Hari AIDS Sedunia"],
+                "12-03": ["Hari Disabilitas Internasional"],
+                "12-09": ["Hari Anti Korupsi Sedunia"],
+                "12-19": ["Hari Bela Negara"],
+                "12-22": ["Hari Ibu"],
+                "12-24": ["Cuti Bersama Natal"],
+                "12-25": ["Hari Raya Natal"]
+            };
+
+            // DAFTAR LOGO KHUSUS (MM-DD)
+            const specialLogos = {
+                "02-05": { src: "https://upload.wikimedia.org/wikipedia/commons/thumb/6/67/Lambang_HMI_%28Original%29.png/120px-Lambang_HMI_%28Original%29.png", alt: "HMI", size: "24px" },
+                "04-09": { src: "https://upload.wikimedia.org/wikipedia/commons/thumb/b/ba/Logo_Bawaslu.png/600px-Logo_Bawaslu.png", alt: "Bawaslu", size: "24px" },
+                "06-01": { src: "https://upload.wikimedia.org/wikipedia/commons/thumb/9/90/National_emblem_of_Indonesia_Garuda_Pancasila.svg/960px-National_emblem_of_Indonesia_Garuda_Pancasila.svg.png", alt: "Pancasila", size: "24px" },
+                "07-01": { src: "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b3/Logo_Polri.png/438px-Logo_Polri.png", alt: "Polri", size: "24px" },
+                "08-14": { src: "https://upload.wikimedia.org/wikipedia/commons/thumb/7/7b/Logo_Pramuka.svg/512px-Logo_Pramuka.svg.png", alt: "Pramuka", size: "24px" },
+                "11-07": { src: "https://upload.wikimedia.org/wikipedia/commons/4/46/KPU_Logo.svg", alt: "KPU", size: "24px" }
+            };
+
+            function initCalendar() {
+                displayedMonth = realMonth;
+                displayedYear = realYear;
+
+                // Tutup popup secara otomatis saat area di luar kotak putih (overlay) diklik
+                document
+                    .getElementById('popup-overlay')
+                    .addEventListener('click', function (e) {
+                        if (e.target === this) 
+                            closePopup();
+                        }
+                    );
+
+                document
+                    .getElementById('year-overlay')
+                    .addEventListener('click', function (e) {
+                        if (e.target === this) 
+                            closeYearPopup();
+                        }
+                    );
+
+                // Fitur Swipe untuk Mobile
+                const grid = document.getElementById('calendar-grid');
+                let touchStartX = 0;
+
+                grid.addEventListener('touchstart', (e) => {
+                    touchStartX = e
+                        .changedTouches[0]
+                        .screenX;
+                }, {passive: true});
+
+                grid.addEventListener('touchend', (e) => {
+                    const touchEndX = e
+                        .changedTouches[0]
+                        .screenX;
+                    const diff = touchStartX - touchEndX;
+                    if (Math.abs(diff) > 50) { // threshold 50px
+                        if (diff > 0) 
+                            changeMonth(1); // Geser kiri -> Bulan depan
+                        else 
+                            changeMonth(-1); // Geser kanan -> Bulan lalu
+                        }
+                    }, {passive: true});
+
+                // Otomatis hitung tinggi header sidebar
+                const sidebarHeader = document.getElementById('sidebar-header');
+                const sidebarContainer = document.querySelector('.monthly-schedule-container');
+                
+                if (sidebarHeader && sidebarContainer) {
+                    const updateHeight = () => {
+                        sidebarContainer.style.setProperty('--header-height', sidebarHeader.offsetHeight + 'px');
+                    };
+                    // Pantau jika ukuran header berubah (misal teks membungkus/wrap)
+                    new ResizeObserver(updateHeight).observe(sidebarHeader);
+                }
+
+                renderCalendar(displayedMonth, displayedYear);
+                renderPopup(realToday, realMonth, realYear);
+            }
+
+            function renderCalendar(month, year) {
+                document
+                    .getElementById('month-year-display')
+                    .innerText = `${monthNames[month]} ${year}`;
+
+                // Update Status Tombol Today
+                const tBtn = document.querySelector('.today-btn');
+                if (month === realMonth && year === realYear) {
+                    tBtn
+                        .classList
+                        .add('is-today');
+                    tBtn.innerText = "Bulan Ini";
+                } else {
+                    tBtn
+                        .classList
+                        .remove('is-today');
+                    tBtn.innerText = "Hari Ini";
+                }
+
+                const grid = document.getElementById('calendar-grid');
+                grid.innerHTML = ''; // Clear grid
+
+                dayNames.forEach(d => {
+                    const div = document.createElement('div');
+                    div.className = 'day-name';
+                    div.innerText = d;
+                    grid.appendChild(div);
+                });
+
+                const firstDay = new Date(year, month, 1).getDay();
+                const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+                for (let i = 0; i < firstDay; i++) {
+                    grid.appendChild(document.createElement('div'));
+                }
+
+                for (let i = 1; i <= daysInMonth; i++) {
+                    const dayDiv = document.createElement('div');
+                    dayDiv.className = 'day';
+                    
+                    // LOGIKA BARU: Ambil key MM-DD di awal
+                    const dateKey = `${String(month + 1).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
+
+                    // Cek apakah tanggal ini memiliki logo khusus
+                    if (specialLogos[dateKey]) {
+                        const logo = specialLogos[dateKey];
+                        dayDiv.innerHTML = `<img src="${logo.src}" style="width: ${logo.size}; height: ${logo.size}; object-fit: contain;" alt="${logo.alt}">`;
+                        dayDiv.style.display = 'flex';
+                        dayDiv.style.justifyContent = 'center';
+                        dayDiv.style.alignItems = 'center';
+                        dayDiv.style.padding = '0';
+                    } else {
+                        dayDiv.innerText = i;
+                    }
+
+                    if (schedules[dateKey]) {
+                        dayDiv
+                            .classList
+                            .add('has-schedule');
+                        dayDiv.title = "Kegiatan:\n" + schedules[dateKey]
+                            .map(s => "- " + s)
+                            .join('\n');
+                    }
+
+                    if (i === realToday && month === realMonth && year === realYear) {
+                        dayDiv
+                            .classList
+                            .add('today');
+                    }
+
+                    dayDiv.onclick = () => renderPopup(i, month, year);
+                    grid.appendChild(dayDiv);
+                }
+
+                const sidebarDay = (month === realMonth && year === realYear) ? realToday : '';
+                renderMonthlyList(month, sidebarDay);
+            }
+
+            // Fungsi untuk menentukan warna kategori
+            function getCategoryColor(events) {
+                if (!events || events.length === 0) return '#660300'; // Default Maroon
+                
+                const text = events.join(' ').toLowerCase();
+                if (text.includes('libur nasional')) return '#BF0000'; // Merah KPU
+                if (text.includes('ulang tahun')) return '#e95007';   // Oranye
+                if (text.includes('harlah') || text.includes('hut') || text.includes('hari jadi')) return '#ffbf00'; // Emas
+                
+                return '#660300'; // Default
+            }
+
+            // Helper untuk membuat HTML ikon dinamis
+            function getIconHTML(day, monthIdx, events = []) {
+                const mLabel = monthNames[monthIdx].substring(0, 3);
+                const headerColor = getCategoryColor(events);
+                
+                return `<div class="dynamic-icon" style="--header-color: ${headerColor}">
+                            <div class="icon-m">${mLabel}</div>
+                            <div class="icon-d">${day || '...'}</div>
+                        </div>`;
+            }
+
+            function changeMonth(delta) {
+                displayedMonth += delta;
+                if (displayedMonth > 11) {
+                    displayedMonth = 0;
+                    displayedYear++;
+                } else if (displayedMonth < 0) {
+                    displayedMonth = 11;
+                    displayedYear--;
+                }
+
+                const grid = document.getElementById('calendar-grid');
+                // Hapus kelas animasi lama
+                grid
+                    .classList
+                    .remove('slide-in-right', 'slide-in-left');
+                // Trigger reflow untuk mengulang animasi
+                void grid.offsetWidth;
+
+                renderCalendar(displayedMonth, displayedYear);
+
+                // Tambahkan animasi berdasarkan arah navigasi
+                if (delta > 0) 
+                    grid
+                        .classList
+                        .add('slide-in-right');
+                else if (delta < 0) 
+                    grid
+                        .classList
+                        .add('slide-in-left');
+                }
+            
+            function goToToday() {
+                // Jika sudah di bulan ini, tidak perlu render ulang
+                if (displayedMonth === realMonth && displayedYear === realYear) 
+                    return;
+                
+                // Tentukan arah animasi (apakah kita kembali ke masa lalu atau masa depan)
+                const isMovingToPast = (displayedYear > realYear) || (
+                    displayedYear === realYear && displayedMonth > realMonth
+                );
+
+                displayedMonth = realMonth;
+                displayedYear = realYear;
+
+                const grid = document.getElementById('calendar-grid');
+                grid
+                    .classList
+                    .remove('slide-in-right', 'slide-in-left');
+                void grid.offsetWidth;
+
+                renderCalendar(displayedMonth, displayedYear);
+
+                // Jika kita kembali dari masa depan ke sekarang, gunakan slide dari kiri
+                grid
+                    .classList
+                    .add(
+                        isMovingToPast
+                            ? 'slide-in-left'
+                            : 'slide-in-right'
+                    );
+            }
+
+            function renderPopup(day, month, year) {
+                const content = document.getElementById('popup-date-content');
+                const list = document.getElementById('reminder-list');
+
+                // Definisikan dateKey di awal agar bisa digunakan oleh fungsi lainnya
+                const dateKey = `${String(month + 1).padStart(2, '0')}-${String(day).padStart(
+                    2,
+                    '0'
+                )}`;
+
+                // Update Ikon di Judul Reminder Popup
+                const popupTitle = document.getElementById('popup-reminder-title');
+                const dayEvents = schedules[dateKey] || [];
+                popupTitle.innerHTML = `${getIconHTML(day, month, dayEvents)} Jadwal Hari Ini:`;
+
+                content.innerHTML = `<p class="popup-date-big">${day}<sup class="popup-date-sup">${monthNames[month]} ${year}</sup></p>`;
+
+                const todaySchedules = schedules[dateKey] || ["Tidak ada apa-apa untuk hari ini."];
+
+                list.innerHTML = todaySchedules
+                    .map(item => `<li>• ${item}</li>`)
+                    .join('');
+
+                // Update juga ikon di sidebar agar sinkron dengan tanggal yang diklik
+                renderMonthlyList(month, day);
+
+                document
+                    .getElementById('popup-overlay')
+                    .style
+                    .display = 'flex';
+            }
+
+            function renderMonthlyList(month, day = '') {
+                const listAll = document.getElementById('monthly-list-all');
+                listAll.innerHTML = '';
+                const fragment = document.createDocumentFragment();
+
+                // Update Ikon di Sidebar (menggunakan '...' atau ikon bulan saja)
+                const sidebarHeader = document.getElementById('sidebar-header');
+                
+                let dayEvents = [];
+                if (day) {
+                    const iconDateKey = `${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                    dayEvents = schedules[iconDateKey] || [];
+                }
+                sidebarHeader.innerHTML = `${getIconHTML(day, month, dayEvents)} Agenda Bulan Ini`;
+
+                // Filter key yang diawali dengan bulan yang dipilih (MM-)
+                const monthPrefix = `${String(month + 1).padStart(2, '0')}-`;
+                const sortedDates = Object
+                    .keys(schedules)
+                    .filter(key => key.startsWith(monthPrefix))
+                    .sort();
+
+                if (sortedDates.length === 0) {
+                    listAll.innerHTML = '<li>Tidak ada agenda ucapan bulan ini.</li>';
+                    return;
+                }
+
+                sortedDates.forEach((date, index) => {
+                    const dayNum = date.split('-')[1]; // Ambil DD
+                    const li = document.createElement('li');
+                    
+                    // Efek staggered (berurutan) berdasarkan urutan item
+                    li.style.animationDelay = `${index * 0.05}s`;
+
+                    // Tambahkan highlight jika tanggal sesuai dengan yang dipilih/hari ini
+                    if (day && parseInt(dayNum) === parseInt(day)) {
+                        li.classList.add('active-agenda');
+                        // Scroll otomatis agar agenda yang terpilih terlihat di sidebar
+                        setTimeout(() => li.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100);
+                    }
+
+                    li.innerHTML = `<strong>Tgl ${dayNum}:</strong><br>` + schedules[date]
+                        .map(
+                            s => `• ${s}`
+                        )
+                        .join('<br>');
+                    fragment.appendChild(li);
+                });
+                listAll.appendChild(fragment);
+            }
+
+            // Point 2: Fitur Kalender 12 Bulan
+            function showYearView() {
+                const container = document.getElementById('year-grid-content');
+                container.innerHTML = '';
+                const year = displayedYear;
+
+                for (let m = 0; m < 12; m++) {
+                    const monthDiv = document.createElement('div');
+                    monthDiv.className = 'mini-month';
+
+                    // Indikator Golden Border untuk bulan saat ini di tampilan tahunan
+                    if (m === realMonth && year === realYear) {
+                        monthDiv.style.border = '2px solid var(--accent-color)';
+                    }
+
+                    monthDiv.onclick = () => {
+                        displayedMonth = m;
+                        renderCalendar(displayedMonth, displayedYear);
+                        closeYearPopup();
+                    };
+
+                    const title = document.createElement('div');
+                    title.className = 'mini-month-name';
+                    title.innerText = monthNames[m];
+                    monthDiv.appendChild(title);
+
+                    const daysDiv = document.createElement('div');
+                    daysDiv.className = 'mini-days';
+
+                    const firstDay = new Date(year, m, 1).getDay();
+                    const daysInMonth = new Date(year, m + 1, 0).getDate();
+
+                    // Spasi kosong awal bulan
+                    for (let i = 0; i < firstDay; i++) {
+                        daysDiv.appendChild(document.createElement('div'));
+                    }
+
+                    for (let i = 1; i <= daysInMonth; i++) {
+                        const d = document.createElement('div');
+                        d.innerText = i;
+                        const dateKey = `${String(m + 1).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
+                        if (schedules[dateKey]) {
+                            d.style.color = 'var(--secondary-color)';
+                            d.style.fontWeight = 'bold';
+                        }
+                        daysDiv.appendChild(d);
+                    }
+
+                    monthDiv.appendChild(daysDiv);
+                    container.appendChild(monthDiv);
+                }
+                document
+                    .getElementById('year-overlay')
+                    .style
+                    .display = 'flex';
+            }
+
+            function closePopup() {
+                document
+                    .getElementById('popup-overlay')
+                    .style
+                    .display = 'none';
+            }
+
+            function closeYearPopup() {
+                document
+                    .getElementById('year-overlay')
+                    .style
+                    .display = 'none';
+            }
+
+            window.onload = initCalendar;
+        </script>
+    </body>
+</html>
