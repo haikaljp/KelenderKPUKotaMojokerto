@@ -287,7 +287,6 @@
                 overflow-y: auto;
                 overflow-x: hidden; /* Tambahan */
                 position: relative;
-                scrollbar-width: none; /* Sembunyikan scrollbar di Firefox */
             }
             #sidebar-header {
                 position: sticky;
@@ -343,9 +342,25 @@
                 }
                 .monthly-schedule-container {
                     width: 320px; /* Sedikit lebih ramping di desktop */
-                    max-height: calc(100vh - 40px); /* Memanfaatkan tinggi layar vertikal */
+                    max-height: 500px; /* Tinggi tetap agar scrollbar lebih mudah terpicu */
                     max-width: none;
-                    scrollbar-width: thin; /* Tampilkan scrollbar tipis di Firefox */
+                    overflow-y: scroll; /* Paksa munculkan track scrollbar */
+                    scrollbar-width: thin; 
+                    scrollbar-color: var(--maroon-dark) #f1f1f1;
+                }
+
+                /* Desain Scrollbar khusus Desktop (Chrome, Edge, Safari) */
+                .monthly-schedule-container::-webkit-scrollbar {
+                    width: 8px; /* Sedikit lebih tebal agar mudah diklik */
+                    display: block; /* Pastikan tampil di desktop */
+                }
+                .monthly-schedule-container::-webkit-scrollbar-track {
+                    background: #f1f1f1;
+                    border-radius: 10px;
+                }
+                .monthly-schedule-container::-webkit-scrollbar-thumb {
+                    background: var(--maroon-dark);
+                    border-radius: 10px;
                 }
                 .day {
                     padding: 20px 0; /* Sel lebih besar di desktop */
